@@ -1,12 +1,17 @@
 declare var require: Function;
 require("whatwg-fetch");
 
+// Save the original console
 const originalConsole = window.console;
+
+// Get information about the platform
+const platform = require("platform");
 
 export interface Options {
   endpoint: string,
   host: string,
-  level?: "log" | "debug" | "info" | "warn" | "error"
+  level?: "log" | "debug" | "info" | "warn" | "error",
+  staticProperties?: any
 }
 
 interface LogFn {
@@ -62,6 +67,13 @@ export function configure(opts: Options) {
 
           // Add the full_message, if there is one
           if (fullMessage) gelfMessage.full_message = fullMessage;
+
+          // Add all the information we got from platform.js
+          gelfMessage.platform = { platform };
+
+          // Add any static properties passed in at config time
+          for (let key in (opts.staticProperties || {}))
+            gelfMessage[`_${key}`] = opts.staticProperties[key];
 
           // Add all the optional parameters, with underscores
           for (let key in additionalFields)
