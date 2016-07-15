@@ -1,9 +1,12 @@
 declare var global: any;
 declare var require: Function;
-require("whatwg-fetch");
+require("isomorphic-fetch");
 
 // The target will be window in a browser and global in node
-const target = ((typeof "window" === "undefined") ? global : window);
+const target = ((typeof window === "undefined") ? global : window);
+
+// Make sure console.debug exists (it doesn't in node)
+if (!target.console.debug) target.console.debug = target.console.log;
 
 // Save the original console
 const originalConsole = target.console;
@@ -21,7 +24,7 @@ export interface Options {
 interface LogFn {
   (message?: any, ...contexts: any[]): void;
 }
- 
+
 function getLevel(level: string) {
   switch (level.toLowerCase()) {
     case "log": return 7;
@@ -53,7 +56,7 @@ export function configure(opts: Options) {
       if (getLevel(level) <= getLevel(opts.level || "log")) {
         // If any of the additional fields are 'id' throw an (original) error
         if (Object.keys(additionalFields).filter(key => key === "id").length === 1) {
-          (<any>window.console).originalError("Additional fields named `id` are not allowed by the GELF format");
+          (<any>target.console).originalError("Additional fields named `id` are not allowed by the GELF format");
         } else {
           // Construct the basic gelf message
           const gelfMessage: any = {
@@ -92,16 +95,13 @@ export function configure(opts: Options) {
       }
 
       // Write to the console
-      originalFn.bind(window.console, message, ...contexts);
+      originalFn.call(target.console, message, ...contexts);
     }
   }
 
-  const newConsole: any = [ "log", "debug", "info", "warn", "error" ].reduce((console, level) => {
-    return Object.assign(console, {
-      [`original${capitalize(level)}`]: window.console[level],
-      [level]: makeLogger(originalConsole[level], level)
-    });
-  }, {});
-
-  target.console = Object.assign(originalConsole, newConsole);
+  // Overwrite the console methods with our wrapped versions (renaming the original)
+  [ "log", "debug", "info", "warn", "error" ].forEach(level => {
+    target.console[`original${capitalize(level)}`] = target.console[level];
+    target.console[level] = makeLogger(originalConsole[level], level);
+  });
 }
