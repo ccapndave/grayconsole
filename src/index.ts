@@ -1,8 +1,12 @@
+declare var global: any;
 declare var require: Function;
 require("whatwg-fetch");
 
+// The target will be window in a browser and global in node
+const target = ((typeof "window" === "undefined") ? global : window);
+
 // Save the original console
-const originalConsole = window.console;
+const originalConsole = target.console;
 
 // Get information about the platform
 const platform = require("platform");
@@ -99,5 +103,5 @@ export function configure(opts: Options) {
     });
   }, {});
 
-  window.console = Object.assign(window.console, newConsole);
+  target.console = Object.assign(originalConsole, newConsole);
 }
