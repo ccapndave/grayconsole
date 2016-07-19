@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "module": "commonjs",
     "outDir": "build",
     "sourceMap": true,
@@ -8,6 +8,7 @@
   },
   "files": [
     "./typings/index.d.ts",
-    "./src/index.ts"
+    "./src/index.ts",
+    "./node_modules/typescript/lib/lib.es6.d.ts"
   ]
 }
