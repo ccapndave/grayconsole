@@ -95,7 +95,7 @@ export function configure(opts: Options) {
       }
 
       // Write to the console
-      originalFn.call(target.console, message, ...contexts);
+      originalFn.call(target.console, message + (fullMessage ? `: ${fullMessage}` : ""), ...contexts);
     }
   }
 
