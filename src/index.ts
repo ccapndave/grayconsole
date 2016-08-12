@@ -78,6 +78,24 @@ export function configure(opts: Options) {
           // Add all the information we got from platform.js
           gelfMessage.platform = { platform };
 
+          // Plus the screen size details, if we can get them
+          if (target.screen) {
+            gelfMessage.platform.platform.screen = {
+              availHeight: target.screen.availHeight,
+              availLeft: target.screen.availLeft,
+              availTop: target.screen.availTop,
+              availWidth: target.screen.availWidth,
+              colorDepth: target.screen.colorDepth,
+              height: target.screen.height,
+              orientation: {
+                angle: target.screen.orientation.angle,
+                type: target.screen.orientation.type
+              },
+              pixelDepth: target.screen.pixelDepth,
+              width: target.screen.width
+            };
+          }
+
           // Add any static properties passed in at config time
           for (let key in (opts.staticProperties || {}))
             gelfMessage[`_${key}`] = opts.staticProperties[key];
