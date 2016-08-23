@@ -87,13 +87,17 @@ export function configure(opts: Options) {
               availWidth: target.screen.availWidth,
               colorDepth: target.screen.colorDepth,
               height: target.screen.height,
-              orientation: {
-                angle: target.screen.orientation.angle,
-                type: target.screen.orientation.type
-              },
               pixelDepth: target.screen.pixelDepth,
               width: target.screen.width
             };
+
+            // Explicitly check for orientation as it doesn't necessarily exist on Safari
+            if (target.screen.orientation) {
+              gelfMessage.platform.platform.screen.orientation = {
+                angle: target.screen.orientation.angle,
+                type: target.screen.orientation.type
+              }
+            }
           }
 
           // Add any static properties passed in at config time
