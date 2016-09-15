@@ -54,66 +54,67 @@ export function configure(opts: Options) {
 
       // Only log to Graylog if level is at least opts.level
       if (getLevel(level) <= getLevel(opts.level || "log")) {
-        // If any of the additional fields are 'id' throw an (original) error
+        // If any of the additional fields are called 'id', rename them to 'id_' (since GELF reserves _id)
         if (Object.keys(additionalFields).filter(key => key === "id").length === 1) {
-          (<any>target.console).originalError("Additional fields named `id` are not allowed by the GELF format");
-        } else {
-          // Construct the basic gelf message
-          const gelfMessage: any = {
-            "version": "1.1",
-            "host": opts.host,
-            "short_message": message,
-            "level": getLevel(level),
+          additionalFields["id_"] = additionalFields.id;
+          delete additionalFields.id;
+        }
+
+        // Construct the basic gelf message
+        const gelfMessage: any = {
+          "version": "1.1",
+          "host": opts.host,
+          "short_message": message,
+          "level": getLevel(level),
+        };
+
+        // If message is an Error then extract useful bits
+        if (Object.prototype.toString.call(message) === "[object Error]") {
+          gelfMessage.short_message = (<Error>message).message;
+          gelfMessage.full_message = (<any>message).stack;
+        }
+
+        // Add the full_message, if there is one
+        if (fullMessage) gelfMessage.full_message = fullMessage;
+
+        // Add all the information we got from platform.js
+        gelfMessage.platform = { platform };
+
+        // Plus the screen size details, if we can get them
+        if (target.screen) {
+          gelfMessage.platform.platform.screen = {
+            availHeight: target.screen.availHeight,
+            availLeft: target.screen.availLeft,
+            availTop: target.screen.availTop,
+            availWidth: target.screen.availWidth,
+            colorDepth: target.screen.colorDepth,
+            height: target.screen.height,
+            pixelDepth: target.screen.pixelDepth,
+            width: target.screen.width
           };
 
-          // If message is an Error then extract useful bits
-          if (Object.prototype.toString.call(message) === "[object Error]") {
-            gelfMessage.short_message = (<Error>message).message;
-            gelfMessage.full_message = (<any>message).stack;
-          }
-
-          // Add the full_message, if there is one
-          if (fullMessage) gelfMessage.full_message = fullMessage;
-
-          // Add all the information we got from platform.js
-          gelfMessage.platform = { platform };
-
-          // Plus the screen size details, if we can get them
-          if (target.screen) {
-            gelfMessage.platform.platform.screen = {
-              availHeight: target.screen.availHeight,
-              availLeft: target.screen.availLeft,
-              availTop: target.screen.availTop,
-              availWidth: target.screen.availWidth,
-              colorDepth: target.screen.colorDepth,
-              height: target.screen.height,
-              pixelDepth: target.screen.pixelDepth,
-              width: target.screen.width
-            };
-
-            // Explicitly check for orientation as it doesn't necessarily exist on Safari
-            if (target.screen.orientation) {
-              gelfMessage.platform.platform.screen.orientation = {
-                angle: target.screen.orientation.angle,
-                type: target.screen.orientation.type
-              }
+          // Explicitly check for orientation as it doesn't necessarily exist on Safari
+          if (target.screen.orientation) {
+            gelfMessage.platform.platform.screen.orientation = {
+              angle: target.screen.orientation.angle,
+              type: target.screen.orientation.type
             }
           }
-
-          // Add any static properties passed in at config time
-          for (let key in (opts.staticProperties || {}))
-            gelfMessage[`_${key}`] = opts.staticProperties[key];
-
-          // Add all the optional parameters, with underscores
-          for (let key in additionalFields)
-            gelfMessage[`_${key}`] = additionalFields[key];
-
-          // And finally make the request against the Graylog endpoint.  We don't care if it fails.
-          fetch(opts.endpoint, {
-            method: "post",
-            body: JSON.stringify(gelfMessage)
-          });
         }
+
+        // Add any static properties passed in at config time
+        for (let key in (opts.staticProperties || {}))
+          gelfMessage[`_${key}`] = opts.staticProperties[key];
+
+        // Add all the optional parameters, with underscores
+        for (let key in additionalFields)
+          gelfMessage[`_${key}`] = additionalFields[key];
+
+        // And finally make the request against the Graylog endpoint.  We don't care if it fails.
+        fetch(opts.endpoint, {
+          method: "post",
+          body: JSON.stringify(gelfMessage)
+        });
       }
 
       // Write to the console
