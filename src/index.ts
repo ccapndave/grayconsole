@@ -30,11 +30,12 @@ function getLevel(level: string) {
     case "log": return 7;
     case "debug": return 7;
     case "info": return 6;
+    case "notice": return 5;
     case "warn": return 4;
     case "error": return 3;
-    // critical = 2
-    // alert = 1
-    // emergency = 0
+    case "critical": return 2;
+    case "alert": return 1;
+    case "emergency": return 0;
   }
 }
 
@@ -52,8 +53,12 @@ export function configure(opts: Options) {
       // Put all the remaining contexts together into a single object
       const additionalFields = Object.assign({}, ...contexts);
 
-      // Only log to Graylog if level is at least opts.level
-      if (getLevel(level) <= getLevel(opts.level || "log")) {
+      // Get the severity - this either comes from the console function, or from severity in the contexts
+      const severity = additionalFields.severity !== undefined ? getLevel(additionalFields.severity) : getLevel(level);
+      delete additionalFields.severity;
+
+      // Only log to Graylog if the severity is at least opts.level
+      if (severity <= getLevel(opts.level || "log")) {
         // If any of the additional fields are called 'id', rename them to 'id_' (since GELF reserves _id)
         if (Object.keys(additionalFields).filter(key => key === "id").length === 1) {
           additionalFields["id_"] = additionalFields.id;
@@ -65,7 +70,7 @@ export function configure(opts: Options) {
           "version": "1.1",
           "host": opts.host,
           "short_message": message,
-          "level": getLevel(level),
+          "level": severity,
         };
 
         // If message is an Error then extract useful bits
