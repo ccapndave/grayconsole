@@ -17,7 +17,7 @@ const platform = require("platform");
 export interface Options {
   endpoint: string,
   host: string,
-  level?: "log" | "debug" | "info" | "warn" | "error",
+  level?: string,
   staticProperties?: any
 }
 
