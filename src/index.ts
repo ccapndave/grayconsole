@@ -115,10 +115,15 @@ export function configure(opts: Options) {
         for (let key in additionalFields)
           gelfMessage[`_${key}`] = additionalFields[key];
 
+        // Create a headers object
+        var headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+
         // And finally make the request against the Graylog endpoint.  We don't care if it fails.
         fetch(opts.endpoint, {
           method: "post",
-          body: JSON.stringify(gelfMessage)
+          body: JSON.stringify(gelfMessage),
+          headers
         });
       }
 
