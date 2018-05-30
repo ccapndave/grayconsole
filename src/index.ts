@@ -124,7 +124,7 @@ export function configure(opts: Options) {
           method: "post",
           body: JSON.stringify(gelfMessage),
           headers
-        });
+        }).catch(_ => {});
       }
 
       // Write to the console
