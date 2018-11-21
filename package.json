@@ -1,6 +1,6 @@
 {
   "name": "grayconsole",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Wrap console logging functions so that they send to a Graylog2 server",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
