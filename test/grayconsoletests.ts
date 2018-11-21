@@ -8,12 +8,13 @@ describe("A connection", () => {
 
   it("should cope with graylog failure", (done) => {
     configure({
-      endpoint: "http://localhost:5000",
+      endpoint: "http://localhost:12201/gelf",
       host: "graylogtest",
-      level: "log"
+      level: "log",
+      debug: true
     });
 
-    console.error("Error!");
+    console.error("Why isn't this being received?");
   }).timeout(999999999);
 
 });

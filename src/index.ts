@@ -1,6 +1,7 @@
 declare var global: any;
 declare var require: Function;
-require("isomorphic-fetch");
+
+const { fetch, Headers } = require('cross-fetch');
 
 // The target will be window in a browser and global in node
 const target = ((typeof window === "undefined") ? global : window);
@@ -18,7 +19,8 @@ export interface Options {
   endpoint: string,
   host: string,
   level?: "log" | "debug" | "info" | "notice" | "warn" | "error" | "critical" | "alert" | "emergency",
-  staticProperties?: any
+  staticProperties?: any,
+  debug?: boolean
 }
 
 interface LogFn {
@@ -154,7 +156,9 @@ export function configure(opts: Options) {
           method: "post",
           body: JSON.stringify(gelfMessage),
           headers
-        }).catch(err => { });
+        }).catch(err => {
+          if (opts.debug) target.console["originalError"](err.toString());
+        });
       }
 
       // Write to the console
