@@ -35,5 +35,5 @@ If the first argument of the call to `console.<level>` is a string then this is 
 ```ts
 console.info("I am a message");
 console.info("User logged in", { name: "Dave" });
-console.ingo("Can't find file", { filename: "missing.json" }, someRelevantObject, someOtherRelevantObject)
+console.info("Can't find file", { filename: "missing.json" }, someRelevantObject, someOtherRelevantObject)
 ```

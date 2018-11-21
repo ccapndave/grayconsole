@@ -17,7 +17,7 @@ const platform = require("platform");
 export interface Options {
   endpoint: string,
   host: string,
-  level?: string,
+  level?: "log" | "debug" | "info" | "notice" | "warn" | "error" | "critical" | "alert" | "emergency",
   staticProperties?: any
 }
 
@@ -39,6 +39,36 @@ function getLevel(level: string) {
   }
 }
 
+if (typeof (<any>Object).assign != 'function') {
+  // Must be writable: true, enumerable: false, configurable: true
+  Object.defineProperty(Object, "assign", {
+    value: function assign(target, varArgs) { // .length of function is 2
+      'use strict';
+      if (target == null) { // TypeError if undefined or null
+        throw new TypeError('Cannot convert undefined or null to object');
+      }
+
+      var to = Object(target);
+
+      for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+
+        if (nextSource != null) { // Skip over if undefined or null
+          for (var nextKey in nextSource) {
+            // Avoid bugs when hasOwnProperty is shadowed
+            if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+              to[nextKey] = nextSource[nextKey];
+            }
+          }
+        }
+      }
+      return to;
+    },
+    writable: true,
+    configurable: true
+  });
+}
+
 export function configure(opts: Options) {
   const capitalize = s => s.length > 0 ? s[0].toUpperCase() + s.substring(1) : "";
 
@@ -51,7 +81,7 @@ export function configure(opts: Options) {
       }
 
       // Put all the remaining contexts together into a single object
-      const additionalFields = Object.assign({}, ...contexts);
+      const additionalFields = (<any>Object).assign({}, ...contexts);
 
       // Get the severity - this either comes from the console function, or from severity in the contexts
       const severity = additionalFields.severity !== undefined ? getLevel(additionalFields.severity) : getLevel(level);
@@ -124,7 +154,7 @@ export function configure(opts: Options) {
           method: "post",
           body: JSON.stringify(gelfMessage),
           headers
-        }).catch(_ => {});
+        }).catch(err => { });
       }
 
       // Write to the console
@@ -133,7 +163,7 @@ export function configure(opts: Options) {
   }
 
   // Overwrite the console methods with our wrapped versions (renaming the original)
-  [ "log", "debug", "info", "warn", "error" ].forEach(level => {
+  ["log", "debug", "info", "warn", "error"].forEach(level => {
     target.console[`original${capitalize(level)}`] = target.console[level];
     target.console[level] = makeLogger(originalConsole[level], level);
   });

@@ -7,8 +7,6 @@
     "declaration": true
   },
   "files": [
-    "./typings/index.d.ts",
-    "./src/index.ts",
-    "./node_modules/typescript/lib/lib.es6.d.ts"
+    "./src/index.ts"
   ]
 }

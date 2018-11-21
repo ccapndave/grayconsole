@@ -1,6 +1,0 @@
-{
-  "globalDependencies": {
-    "platform": "registry:dt/platform#1.0.0+20160316155526",
-    "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20160524142046"
-  }
-}
