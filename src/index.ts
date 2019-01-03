@@ -1,7 +1,7 @@
 declare var global: any;
 declare var require: Function;
 
-const { fetch, Headers } = require('cross-fetch');
+import { fetch, Headers } from "cross-fetch";
 
 // The target will be window in a browser and global in node
 const target = ((typeof window === "undefined") ? global : window);
@@ -53,13 +53,13 @@ if (typeof (<any>Object).assign != 'function') {
       var to = Object(target);
 
       for (var index = 1; index < arguments.length; index++) {
-        var nextSource = arguments[index];
+        var nextSource = arguments[ index ];
 
         if (nextSource != null) { // Skip over if undefined or null
           for (var nextKey in nextSource) {
             // Avoid bugs when hasOwnProperty is shadowed
             if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-              to[nextKey] = nextSource[nextKey];
+              to[ nextKey ] = nextSource[ nextKey ];
             }
           }
         }
@@ -72,13 +72,13 @@ if (typeof (<any>Object).assign != 'function') {
 }
 
 export function configure(opts: Options) {
-  const capitalize = s => s.length > 0 ? s[0].toUpperCase() + s.substring(1) : "";
+  const capitalize = s => s.length > 0 ? s[ 0 ].toUpperCase() + s.substring(1) : "";
 
   function makeLogger(originalFn: LogFn, level: string) {
     return (message: string | Error, ...contexts: any[]) => {
       // If the first element of contexts is a string then that is the fullMessage
       let fullMessage = null;
-      if (contexts.length > 0 && typeof contexts[0] === "string") {
+      if (contexts.length > 0 && typeof contexts[ 0 ] === "string") {
         fullMessage = contexts.shift();
       }
 
@@ -93,7 +93,7 @@ export function configure(opts: Options) {
       if (severity <= getLevel(opts.level || "log")) {
         // If any of the additional fields are called 'id', rename them to 'id_' (since GELF reserves _id)
         if (Object.keys(additionalFields).filter(key => key === "id").length === 1) {
-          additionalFields["id_"] = additionalFields.id;
+          additionalFields[ "id_" ] = additionalFields.id;
           delete additionalFields.id;
         }
 
@@ -141,11 +141,11 @@ export function configure(opts: Options) {
 
         // Add any static properties passed in at config time
         for (let key in (opts.staticProperties || {}))
-          gelfMessage[`_${key}`] = opts.staticProperties[key];
+          gelfMessage[ `_${key}` ] = opts.staticProperties[ key ];
 
         // Add all the optional parameters, with underscores
         for (let key in additionalFields)
-          gelfMessage[`_${key}`] = additionalFields[key];
+          gelfMessage[ `_${key}` ] = additionalFields[ key ];
 
         // Create a headers object
         var headers = new Headers();
@@ -157,7 +157,7 @@ export function configure(opts: Options) {
           body: JSON.stringify(gelfMessage),
           headers
         }).catch(err => {
-          if (opts.debug) target.console["originalError"](err.toString());
+          if (opts.debug) target.console[ "originalError" ](err.toString());
         });
       }
 
@@ -167,8 +167,8 @@ export function configure(opts: Options) {
   }
 
   // Overwrite the console methods with our wrapped versions (renaming the original)
-  ["log", "debug", "info", "warn", "error"].forEach(level => {
-    target.console[`original${capitalize(level)}`] = target.console[level];
-    target.console[level] = makeLogger(originalConsole[level], level);
+  [ "log", "debug", "info", "warn", "error" ].forEach(level => {
+    target.console[ `original${capitalize(level)}` ] = target.console[ level ];
+    target.console[ level ] = makeLogger(originalConsole[ level ], level);
   });
 }
